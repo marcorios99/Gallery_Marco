@@ -928,7 +928,7 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
 
     private fun getCurrentFragment() = (binding.viewPager.adapter as? MyPagerAdapter)?.getCurrentFragment(binding.viewPager.currentItem)
 
-    private fun showProperties() {
+    override fun showProperties() {
         if (getCurrentMedium() != null) {
             MediaPropertiesDialog(this, getCurrentPath(), false)
         }

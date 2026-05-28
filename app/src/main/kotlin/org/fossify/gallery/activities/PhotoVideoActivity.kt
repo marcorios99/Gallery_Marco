@@ -339,7 +339,7 @@ open class PhotoVideoActivity : BaseViewerActivity(), ViewPagerFragment.Fragment
         return false
     }
 
-    private fun showProperties() {
+    override fun showProperties() {
         MediaPropertiesDialog(this, mUri!!.path!!)
     }
 

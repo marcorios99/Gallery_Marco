@@ -64,19 +64,20 @@ android {
     }
 
     buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
+        getByName("release") {
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            if (keystorePropertiesFile.exists() || hasSigningVars()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+
+        create("profile") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+
+            signingConfig = signingConfigs.getByName("debug")
+
+            isDebuggable = false
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 
