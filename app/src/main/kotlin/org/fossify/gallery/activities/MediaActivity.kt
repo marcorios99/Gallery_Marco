@@ -94,6 +94,7 @@ import org.fossify.gallery.helpers.GridSpacingItemDecoration
 import org.fossify.gallery.helpers.IS_IN_RECYCLE_BIN
 import org.fossify.gallery.helpers.MAX_COLUMN_COUNT
 import org.fossify.gallery.helpers.MediaFetcher
+import org.fossify.gallery.helpers.NAV_MEDIA_TYPE
 import org.fossify.gallery.helpers.PATH
 import org.fossify.gallery.helpers.PICKED_PATHS
 import org.fossify.gallery.helpers.RECYCLE_BIN
@@ -104,6 +105,7 @@ import org.fossify.gallery.helpers.SHOW_RECYCLE_BIN
 import org.fossify.gallery.helpers.SHOW_TEMP_HIDDEN_DURATION
 import org.fossify.gallery.helpers.SKIP_AUTHENTICATION
 import org.fossify.gallery.helpers.SLIDESHOW_START_ON_ENTER
+import org.fossify.gallery.helpers.TYPE_VIDEOS
 import org.fossify.gallery.helpers.VIDEO_PLAYER_APP
 import org.fossify.gallery.helpers.VIDEO_PLAYER_SYSTEM
 import org.fossify.gallery.interfaces.MediaOperationsListener
@@ -122,6 +124,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
     private var mIsGetImageIntent = false
     private var mIsGetVideoIntent = false
     private var mIsGetAnyIntent = false
+    private var mNavMediaType = 0
     private var mIsGettingMedia = false
     private var mAllowPickingMultiple = false
     private var mShowAll = false
@@ -160,6 +163,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
             mIsGetImageIntent = getBooleanExtra(GET_IMAGE_INTENT, false)
             mIsGetVideoIntent = getBooleanExtra(GET_VIDEO_INTENT, false)
             mIsGetAnyIntent = getBooleanExtra(GET_ANY_INTENT, false)
+            mNavMediaType = getIntExtra(NAV_MEDIA_TYPE, 0)
             mAllowPickingMultiple = getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
         }
 
@@ -189,6 +193,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         }
 
         updateWidgets()
+        setupBottomNavigation()
     }
 
     override fun onStart() {
@@ -239,6 +244,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
 
         binding.mediaFastscroller.updateColors(primaryColor)
         binding.mediaRefreshLayout.isEnabled = config.enablePullToRefresh
+        updateBottomNavigation()
         getMediaAdapter()?.apply {
             dateFormat = config.dateFormat
             timeFormat = getTimeFormat()
@@ -339,7 +345,6 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
             findItem(R.id.empty_disable_recycle_bin).isVisible = mPath == RECYCLE_BIN
             findItem(R.id.restore_all_files).isVisible = mPath == RECYCLE_BIN
 
-            findItem(R.id.folder_view).isVisible = mShowAll
             findItem(R.id.open_camera).isVisible = mShowAll
             findItem(R.id.about).isVisible = mShowAll
             findItem(R.id.create_new_folder).isVisible =
@@ -379,7 +384,6 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
                 R.id.restore_all_files -> restoreAllFiles()
                 R.id.toggle_filename -> toggleFilenameVisibility()
                 R.id.open_camera -> launchCamera()
-                R.id.folder_view -> switchToFolderView()
                 R.id.change_view_type -> changeViewType()
                 R.id.group -> showGroupByDialog()
                 R.id.create_new_folder -> createNewFolder()
@@ -652,6 +656,75 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         }
     }
 
+    private fun setupBottomNavigation() {
+        if (mIsGetImageIntent || mIsGetVideoIntent || mIsGetAnyIntent || isSetWallpaperIntent()) {
+            binding.galleryBottomNav.root.beGone()
+            return
+        }
+
+        binding.galleryBottomNav.bottomNavCollection.setOnClickListener {
+            if (!mShowAll || mNavMediaType == TYPE_VIDEOS) {
+                openBottomNavMedia(videosOnly = false)
+            }
+        }
+
+        binding.galleryBottomNav.bottomNavVideos.setOnClickListener {
+            if (!mShowAll || mNavMediaType != TYPE_VIDEOS) {
+                openBottomNavMedia(videosOnly = true)
+            }
+        }
+
+        binding.galleryBottomNav.bottomNavFavorites.setOnClickListener {
+            if (mPath != FAVORITES) {
+                config.showAll = false
+                Intent(this, MediaActivity::class.java).apply {
+                    putExtra(DIRECTORY, FAVORITES)
+                    startActivity(this)
+                }
+                finish()
+            }
+        }
+
+        binding.galleryBottomNav.bottomNavAlbums.setOnClickListener {
+            config.showAll = false
+            Intent(this, MainActivity::class.java).apply {
+                startActivity(this)
+            }
+            finish()
+        }
+
+        updateBottomNavigation()
+    }
+
+    private fun openBottomNavMedia(videosOnly: Boolean) {
+        config.showAll = true
+        Intent(this, MediaActivity::class.java).apply {
+            putExtra(DIRECTORY, "")
+            if (videosOnly) {
+                putExtra(NAV_MEDIA_TYPE, TYPE_VIDEOS)
+            }
+            startActivity(this)
+        }
+        finish()
+    }
+
+    private fun updateBottomNavigation() {
+        if (mIsGetImageIntent || mIsGetVideoIntent || mIsGetAnyIntent || isSetWallpaperIntent()) {
+            return
+        }
+
+        val selectedColor = getProperPrimaryColor()
+        val defaultColor = getProperTextColor()
+        binding.galleryBottomNav.apply {
+            bottomNavCollection.setColorFilter(if (mShowAll && mNavMediaType != TYPE_VIDEOS) selectedColor else defaultColor)
+            bottomNavVideos.setColorFilter(if (mShowAll && mNavMediaType == TYPE_VIDEOS) selectedColor else defaultColor)
+            bottomNavFavorites.setColorFilter(if (mPath == FAVORITES) selectedColor else defaultColor)
+            bottomNavAlbums.setColorFilter(defaultColor)
+        }
+    }
+
+    private fun getVideosOnly() = (mIsGetVideoIntent && !mIsGetImageIntent) || mNavMediaType == TYPE_VIDEOS
+
     private fun getMedia() {
         if (mIsGettingMedia) {
             return
@@ -663,7 +736,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         } else {
             getCachedMedia(
                 mPath,
-                mIsGetVideoIntent && !mIsGetImageIntent,
+                getVideosOnly(),
                 mIsGetImageIntent && !mIsGetVideoIntent
             ) {
                 if (it.isEmpty()) {
@@ -686,7 +759,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
             context = applicationContext,
             mPath = mPath,
             isPickImage = mIsGetImageIntent && !mIsGetVideoIntent,
-            isPickVideo = mIsGetVideoIntent && !mIsGetImageIntent,
+            isPickVideo = getVideosOnly(),
             showAll = mShowAll
         ) {
             ensureBackgroundThread {
@@ -786,6 +859,9 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         } else {
             setupListLayoutManager()
         }
+
+        (binding.mediaRefreshLayout.layoutParams as RelativeLayout.LayoutParams)
+            .addRule(RelativeLayout.ABOVE, R.id.gallery_bottom_nav)
     }
 
     private fun setupGridLayoutManager() {
@@ -832,7 +908,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         val viewType = config.getFolderViewType(if (mShowAll) SHOW_ALL else mPath)
         if (viewType == VIEW_TYPE_GRID) {
             val spanCount = config.mediaColumnCnt
-            val spacing = config.thumbnailSpacing
+            val spacing = maxOf(config.thumbnailSpacing, 6)
             val useGridPosition = media.firstOrNull() is ThumbnailSection
 
             var currentGridDecoration: GridSpacingItemDecoration? = null

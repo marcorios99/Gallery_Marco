@@ -13,7 +13,7 @@
     <RelativeLayout
         android:id="@+id/directories_holder"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <org.fossify.commons.views.MyTextView
@@ -56,19 +56,22 @@
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/directories_refresh_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/gallery_bottom_nav"
             android:layout_below="@+id/directories_switch_searching">
 
             <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
                 android:id="@+id/directories_fastscroller"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 app:supportSwipeToRefresh="true">
 
                 <org.fossify.commons.views.MyRecyclerView
                     android:id="@+id/directories_grid"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:padding="12dp"
                     android:layoutAnimation="@anim/layout_animation"
                     android:scrollbars="none"
                     app:layoutManager="org.fossify.commons.views.MyGridLayoutManager"
@@ -76,5 +79,12 @@
 
             </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <include
+            android:id="@+id/gallery_bottom_nav"
+            layout="@layout/bottom_gallery_nav"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_alignParentBottom="true" />
     </RelativeLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

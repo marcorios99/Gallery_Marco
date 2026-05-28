@@ -10,6 +10,9 @@
     <string name="pin_to_the_top">Pin to the top</string>
     <string name="show_all">Show all folders content</string>
     <string name="all_folders">All folders</string>
+    <string name="bottom_nav_collection">Collection</string>
+    <string name="bottom_nav_favorites">Favorites</string>
+    <string name="bottom_nav_albums">Albums</string>
     <string name="folder_view">Switch to folder view</string>
     <string name="other_folder">Other folder</string>
     <string name="show_on_map">Show on map</string>

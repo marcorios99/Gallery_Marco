@@ -126,6 +126,7 @@ import org.fossify.gallery.helpers.LOCATION_INTERNAL
 import org.fossify.gallery.helpers.MAX_COLUMN_COUNT
 import org.fossify.gallery.helpers.MONTH_MILLISECONDS
 import org.fossify.gallery.helpers.MediaFetcher
+import org.fossify.gallery.helpers.NAV_MEDIA_TYPE
 import org.fossify.gallery.helpers.PICKED_PATHS
 import org.fossify.gallery.helpers.RECYCLE_BIN
 import org.fossify.gallery.helpers.SET_WALLPAPER_INTENT
@@ -239,10 +240,8 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
         checkWhatsNewDialog()
         setupLatestMediaId()
 
-        if (!config.wereFavoritesPinned) {
-            config.addPinnedFolders(hashSetOf(FAVORITES))
-            config.wereFavoritesPinned = true
-        }
+        config.removePinnedFolders(hashSetOf(FAVORITES))
+        config.wereFavoritesPinned = true
 
         if (!config.wasRecycleBinPinned) {
             config.addPinnedFolders(hashSetOf(RECYCLE_BIN))
@@ -264,6 +263,7 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
 
         updateWidgets()
         registerFileUpdateListener()
+        setupBottomNavigation()
 
         binding.directoriesSwitchSearching.setOnClickListener {
             launchSearchActivity()
@@ -328,6 +328,7 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
 
         binding.directoriesFastscroller.updateColors(primaryColor)
         binding.directoriesRefreshLayout.isEnabled = config.enablePullToRefresh
+        updateBottomNavigation()
         getRecyclerAdapter()?.apply {
             dateFormat = config.dateFormat
             timeFormat = getTimeFormat()
@@ -498,7 +499,6 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
                 R.id.sort -> showSortingDialog()
                 R.id.filter -> showFilterMediaDialog()
                 R.id.open_camera -> launchCamera()
-                R.id.show_all -> showAllMedia()
                 R.id.change_view_type -> changeViewType()
                 R.id.temporarily_show_hidden -> tryToggleTemporarilyShowHidden()
                 R.id.stop_showing_hidden -> tryToggleTemporarilyShowHidden()
@@ -634,6 +634,63 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
 
         getCachedDirectories(getVideos && !getImages, getImages && !getVideos) {
             gotDirectories(addTempFolderIfNeeded(it))
+        }
+    }
+
+    private fun setupBottomNavigation() {
+        if (mIsThirdPartyIntent) {
+            binding.galleryBottomNav.root.beGone()
+            return
+        }
+
+        binding.galleryBottomNav.bottomNavCollection.setOnClickListener {
+            openBottomNavMedia(videosOnly = false)
+        }
+
+        binding.galleryBottomNav.bottomNavVideos.setOnClickListener {
+            openBottomNavMedia(videosOnly = true)
+        }
+
+        binding.galleryBottomNav.bottomNavFavorites.setOnClickListener {
+            config.showAll = false
+            Intent(this, MediaActivity::class.java).apply {
+                putExtra(DIRECTORY, FAVORITES)
+                startActivity(this)
+            }
+            finish()
+        }
+
+        binding.galleryBottomNav.bottomNavAlbums.setOnClickListener {
+            updateBottomNavigation()
+        }
+
+        updateBottomNavigation()
+    }
+
+    private fun openBottomNavMedia(videosOnly: Boolean) {
+        config.showAll = true
+        Intent(this, MediaActivity::class.java).apply {
+            putExtra(DIRECTORY, "")
+            if (videosOnly) {
+                putExtra(NAV_MEDIA_TYPE, TYPE_VIDEOS)
+            }
+            startActivity(this)
+        }
+        finish()
+    }
+
+    private fun updateBottomNavigation() {
+        if (mIsThirdPartyIntent) {
+            return
+        }
+
+        val selectedColor = getProperPrimaryColor()
+        val defaultColor = getProperTextColor()
+        binding.galleryBottomNav.apply {
+            bottomNavCollection.setColorFilter(defaultColor)
+            bottomNavVideos.setColorFilter(defaultColor)
+            bottomNavFavorites.setColorFilter(defaultColor)
+            bottomNavAlbums.setColorFilter(selectedColor)
         }
     }
 
@@ -843,6 +900,8 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
 
         (binding.directoriesRefreshLayout.layoutParams as RelativeLayout.LayoutParams)
             .addRule(RelativeLayout.BELOW, R.id.directories_switch_searching)
+        (binding.directoriesRefreshLayout.layoutParams as RelativeLayout.LayoutParams)
+            .addRule(RelativeLayout.ABOVE, R.id.gallery_bottom_nav)
     }
 
     private fun setupGridLayoutManager() {
@@ -1097,16 +1156,7 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
         mIsGettingDirs = false
         mShouldStopFetching = false
 
-        // if hidden item showing is disabled but all Favorite items are hidden, hide the Favorites folder
-        if (!config.shouldShowHidden) {
-            val favoritesFolder = newDirs.firstOrNull { it.areFavorites() }
-            if (
-                favoritesFolder != null
-                && favoritesFolder.tmb.getFilenameFromPath().startsWith('.')
-            ) {
-                newDirs.remove(favoritesFolder)
-            }
-        }
+        newDirs.removeAll { it.areFavorites() }
 
         val dirs = getSortedDirectories(newDirs)
         if (config.groupDirectSubfolders) {
@@ -1154,18 +1204,6 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
                     dirs.add(0, recycleBin)
                 }
             } catch (ignored: Exception) {
-            }
-        }
-
-        if (dirs.map { it.path }.contains(FAVORITES)) {
-            if (mediaDB.getFavoritesCount() > 0) {
-                val favorites = Directory().apply {
-                    path = FAVORITES
-                    name = getString(org.fossify.commons.R.string.favorites)
-                    location = LOCATION_INTERNAL
-                }
-
-                dirs.add(0, favorites)
             }
         }
 
@@ -1287,7 +1325,6 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
 
         val foldersToScan = mLastMediaFetcher!!.getFoldersToScan()
         foldersToScan.remove(FAVORITES)
-        foldersToScan.add(0, FAVORITES)
         if (config.showRecycleBinAtFolders) {
             if (foldersToScan.contains(RECYCLE_BIN)) {
                 foldersToScan.remove(RECYCLE_BIN)
