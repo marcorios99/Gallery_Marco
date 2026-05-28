@@ -11,6 +11,8 @@ import android.provider.MediaStore.Video
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.fossify.commons.dialogs.CreateNewFolderDialog
 import org.fossify.commons.dialogs.FilePickerDialog
@@ -264,6 +266,7 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
         updateWidgets()
         registerFileUpdateListener()
         setupBottomNavigation()
+        setupBottomNavigationInsets()
 
         binding.directoriesSwitchSearching.setOnClickListener {
             launchSearchActivity()
@@ -635,6 +638,21 @@ class MainActivity : SimpleActivity(), DirectoryOperationsListener {
         getCachedDirectories(getVideos && !getImages, getImages && !getVideos) {
             gotDirectories(addTempFolderIfNeeded(it))
         }
+    }
+
+    private fun setupBottomNavigationInsets() {
+        val bottomNavRoot = binding.galleryBottomNav.root
+        val initialBottomMargin = (bottomNavRoot.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNavRoot) { view, insets ->
+            val navigationBarBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            val layoutParams = view.layoutParams as ViewGroup.MarginLayoutParams
+            layoutParams.bottomMargin = initialBottomMargin + navigationBarBottom
+            view.layoutParams = layoutParams
+            insets
+        }
+
+        ViewCompat.requestApplyInsets(bottomNavRoot)
     }
 
     private fun setupBottomNavigation() {

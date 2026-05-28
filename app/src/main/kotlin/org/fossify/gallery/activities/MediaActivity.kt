@@ -8,6 +8,8 @@ import android.os.Handler
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -194,6 +196,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
 
         updateWidgets()
         setupBottomNavigation()
+        setupBottomNavigationInsets()
     }
 
     override fun onStart() {
@@ -654,6 +657,21 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
                 }
             }
         }
+    }
+
+    private fun setupBottomNavigationInsets() {
+        val bottomNavRoot = binding.galleryBottomNav.root
+        val initialBottomMargin = (bottomNavRoot.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNavRoot) { view, insets ->
+            val navigationBarBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            val layoutParams = view.layoutParams as ViewGroup.MarginLayoutParams
+            layoutParams.bottomMargin = initialBottomMargin + navigationBarBottom
+            view.layoutParams = layoutParams
+            insets
+        }
+
+        ViewCompat.requestApplyInsets(bottomNavRoot)
     }
 
     private fun setupBottomNavigation() {
