@@ -22,6 +22,7 @@ abstract class ViewPagerFragment : Fragment() {
     private var mTouchDownY = 0f
     private var mCloseDownThreshold = 100f
     private var mIgnoreCloseDown = false
+    private var mIsDraggingDown = false
 
     abstract fun fullscreenToggled(isFullscreen: Boolean)
 
@@ -160,23 +161,86 @@ abstract class ViewPagerFragment : Fragment() {
     protected fun handleEvent(event: MotionEvent) {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                view?.animate()?.cancel()
                 mTouchDownTime = System.currentTimeMillis()
                 mTouchDownX = event.rawX
                 mTouchDownY = event.rawY
+                mIgnoreCloseDown = false
+                mIsDraggingDown = false
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> mIgnoreCloseDown = true
+            MotionEvent.ACTION_MOVE -> {
+                if (mIgnoreCloseDown) {
+                    return
+                }
+
+                val diffX = mTouchDownX - event.rawX
+                val diffY = mTouchDownY - event.rawY
+                val dragDistance = -diffY
+                if (dragDistance > 0 && Math.abs(diffY) > Math.abs(diffX)) {
+                    mIsDraggingDown = true
+                    applyCloseDownDrag(dragDistance)
+                }
+            }
+
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 val diffX = mTouchDownX - event.rawX
                 val diffY = mTouchDownY - event.rawY
 
                 val downGestureDuration = System.currentTimeMillis() - mTouchDownTime
                 if (!mIgnoreCloseDown && (Math.abs(diffY) > Math.abs(diffX)) && (diffY < -mCloseDownThreshold) && downGestureDuration < MAX_CLOSE_DOWN_GESTURE_DURATION && context?.config?.allowDownGesture == true) {
-                    activity?.finish()
-                    activity?.overridePendingTransition(0, org.fossify.commons.R.anim.slide_down)
+                    animateCloseDownAndFinish()
+                } else if (mIsDraggingDown) {
+                    resetCloseDownDrag()
                 }
                 mIgnoreCloseDown = false
+                mIsDraggingDown = false
             }
         }
+    }
+
+    private fun applyCloseDownDrag(dragDistance: Float) {
+        val root = view ?: return
+        val height = root.height.takeIf { it > 0 } ?: return
+        val progress = (dragDistance / height).coerceIn(0f, 1f)
+        val scale = 1f - (progress * 0.08f)
+
+        root.translationY = dragDistance
+        root.scaleX = scale
+        root.scaleY = scale
+        root.alpha = 1f - (progress * 0.35f)
+    }
+
+    private fun resetCloseDownDrag() {
+        view?.animate()
+            ?.translationY(0f)
+            ?.scaleX(1f)
+            ?.scaleY(1f)
+            ?.alpha(1f)
+            ?.setDuration(180L)
+            ?.start()
+    }
+
+    private fun animateCloseDownAndFinish() {
+        val root = view
+        if (root == null) {
+            activity?.finish()
+            activity?.overridePendingTransition(0, org.fossify.commons.R.anim.slide_down)
+            return
+        }
+
+        val targetTranslation = (root.height.takeIf { it > 0 } ?: root.resources.displayMetrics.heightPixels).toFloat()
+        root.animate()
+            .translationY(targetTranslation)
+            .scaleX(0.92f)
+            .scaleY(0.92f)
+            .alpha(0f)
+            .setDuration(160L)
+            .withEndAction {
+                activity?.finish()
+                activity?.overridePendingTransition(0, 0)
+            }
+            .start()
     }
 }
