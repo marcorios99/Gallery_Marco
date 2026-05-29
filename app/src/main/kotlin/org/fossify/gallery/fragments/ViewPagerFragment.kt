@@ -193,8 +193,6 @@ abstract class ViewPagerFragment : Fragment() {
                 val downGestureDuration = System.currentTimeMillis() - mTouchDownTime
                 if (!mIgnoreCloseDown && Math.abs(diffY) > Math.abs(diffX) && diffY < -mCloseDownThreshold && downGestureDuration < MAX_CLOSE_DOWN_GESTURE_DURATION && context?.config?.allowDownGesture == true) {
                     animateCloseDownAndFinish()
-                } else if (!mIgnoreCloseDown && Math.abs(diffY) > Math.abs(diffX) && diffY > mCloseDownThreshold && downGestureDuration < MAX_CLOSE_DOWN_GESTURE_DURATION) {
-                    listener?.showProperties()
                 } else if (mIsDraggingDown) {
                     resetCloseDownDrag()
                 }

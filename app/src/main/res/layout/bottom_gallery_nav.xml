@@ -27,7 +27,7 @@
         android:layout_weight="1"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/videos"
-        android:padding="16dp"
+        android:padding="14dp"
         android:scaleType="center"
         android:src="@drawable/ic_play_vector" />
 

@@ -809,26 +809,23 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
 
     private fun isDirEmpty(): Boolean {
         return if (mMedia.isEmpty() && config.filterMedia > 0) {
-            if (mPath != FAVORITES && mPath != RECYCLE_BIN) {
-                deleteDirectoryIfEmpty()
-                deleteDBDirectory()
-            }
-
             if (mPath == FAVORITES) {
                 ensureBackgroundThread {
                     directoryDB.deleteDirPath(FAVORITES)
                 }
-            }
 
-            if (mPath == RECYCLE_BIN) {
+                false
+            } else if (mPath != RECYCLE_BIN) {
+                deleteDirectoryIfEmpty()
+                deleteDBDirectory()
+                finish()
+                true
+            } else {
                 binding.mediaEmptyTextPlaceholder.setText(org.fossify.commons.R.string.no_items_found)
                 binding.mediaEmptyTextPlaceholder.beVisible()
                 binding.mediaEmptyTextPlaceholder2.beGone()
-            } else {
-                finish()
+                true
             }
-
-            true
         } else {
             false
         }
