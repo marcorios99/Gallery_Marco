@@ -37,9 +37,18 @@
     <string name="reorder_by_dragging">Reorder folders by dragging</string>
     <string name="reorder_by_dragging_pro">Reorder folders by dragging (Pro)</string>
     <string name="restore_to_path">Restoring to \'%s\'</string>
+    <string name="restore_this_file">Restore this photo</string>
+    <string name="restore_selected_files">Restore selected photos</string>
+    <string name="restore_all_files">Restore all photos</string>
+    <string name="move_media_to_recycle_bin_confirmation">Move %s to the recycle bin?</string>
+    <string name="delete_media_confirmation">Delete %s?</string>
+    <plurals name="delete_media_items">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
     <plurals name="restore_confirmation">
-        <item quantity="one">Are you sure you want to restore %d file?</item>
-        <item quantity="other">Are you sure you want to restore %d files?</item>
+        <item quantity="one">Are you sure you want to restore %d photo?</item>
+        <item quantity="other">Are you sure you want to restore %d photos?</item>
     </plurals>
     <string name="full_storage_permission_required">Fossify Gallery needs full access to display all your photos and videos. Go to Settings > Permissions > Photos and videos > Allow all.</string>
 
@@ -206,6 +215,9 @@
     <string name="deep_zoomable_images">Deep zoomable images</string>
     <string name="show_highest_quality">Show images in the highest possible quality</string>
     <string name="show_recycle_bin_last">Show the recycle bin as the last item on the main screen</string>
+    <string name="recycle_bin_delete_today">Today</string>
+    <string name="recycle_bin_delete_tomorrow">Tomorrow</string>
+    <string name="recycle_bin_delete_days">%1$d days</string>
     <string name="allow_down_gesture">Allow closing the fullscreen view with a down gesture</string>
     <string name="allow_one_to_one_zoom">Allow 1:1 zooming in with two double taps</string>
     <string name="open_videos_on_separate_screen">Play videos on a separate screen with horizontal gestures</string>

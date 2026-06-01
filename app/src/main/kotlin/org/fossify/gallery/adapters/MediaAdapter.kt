@@ -41,6 +41,7 @@ import org.fossify.commons.extensions.needsStupidWritePermissions
 import org.fossify.commons.extensions.recycleBinPath
 import org.fossify.commons.extensions.rescanPaths
 import org.fossify.commons.extensions.toast
+import org.fossify.commons.helpers.DAY_SECONDS
 import org.fossify.commons.helpers.FAVORITES
 import org.fossify.commons.helpers.VIEW_TYPE_LIST
 import org.fossify.commons.helpers.ensureBackgroundThread
@@ -86,6 +87,7 @@ import org.fossify.gallery.helpers.ROUNDED_CORNERS_SMALL
 import org.fossify.gallery.helpers.SHOW_ALL
 import org.fossify.gallery.helpers.SHOW_FAVORITES
 import org.fossify.gallery.helpers.SHOW_RECYCLE_BIN
+import org.fossify.gallery.helpers.MONTH_MILLISECONDS
 import org.fossify.gallery.helpers.TYPE_GIFS
 import org.fossify.gallery.helpers.TYPE_RAWS
 import org.fossify.gallery.interfaces.MediaOperationsListener
@@ -559,13 +561,13 @@ class MediaAdapter(
                 fileDirItems.add(curFileDirItem)
             }
             val fileSize = fileDirItems.sumByLong { it.getProperSize(activity, countHidden = true) }.formatSize()
-            val deleteItemsString = resources.getQuantityString(org.fossify.commons.R.plurals.delete_items, itemsCnt, itemsCnt)
+            val deleteItemsString = resources.getQuantityString(R.plurals.delete_media_items, itemsCnt, itemsCnt)
             "$deleteItemsString ($fileSize)"
         }
 
         val isRecycleBin = firstPath.startsWith(activity.recycleBinPath)
         val baseString =
-            if (config.useRecycleBin && !config.tempSkipRecycleBin && !isRecycleBin) org.fossify.commons.R.string.move_to_recycle_bin_confirmation else org.fossify.commons.R.string.deletion_confirmation
+            if (config.useRecycleBin && !config.tempSkipRecycleBin && !isRecycleBin) R.string.move_media_to_recycle_bin_confirmation else R.string.delete_media_confirmation
         val question = String.format(resources.getString(baseString), itemsAndSize)
         val showSkipRecycleBinOption = config.useRecycleBin && !isRecycleBin
 
@@ -715,6 +717,14 @@ class MediaAdapter(
                 mediumCheck.applyColorFilter(contrastColor)
             }
 
+            recycleBinCountdown?.apply {
+                val showCountdown = medium.getIsInRecycleBin() && !isSelected
+                beVisibleIf(showCountdown)
+                if (showCountdown) {
+                    text = getRecycleBinCountdownText(medium)
+                }
+            }
+
             if (isListViewType) {
                 mediaItemHolder.isSelected = isSelected
             }
@@ -765,6 +775,18 @@ class MediaAdapter(
         ThumbnailSectionBinding.bind(view).apply {
             thumbnailSection.text = section.title
             thumbnailSection.setTextColor(textColor)
+        }
+    }
+
+    private fun getRecycleBinCountdownText(medium: Medium): String {
+        val dayMilliseconds = DAY_SECONDS * 1000L
+        val remaining = medium.deletedTS + MONTH_MILLISECONDS - System.currentTimeMillis()
+        val days = ((remaining + dayMilliseconds - 1) / dayMilliseconds).coerceAtLeast(0L)
+
+        return when (days) {
+            0L -> activity.getString(R.string.recycle_bin_delete_today)
+            1L -> activity.getString(R.string.recycle_bin_delete_tomorrow)
+            else -> activity.getString(R.string.recycle_bin_delete_days, days)
         }
     }
 

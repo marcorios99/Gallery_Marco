@@ -33,6 +33,16 @@
     <string name="reorder_by_dragging">Reordenar carpetas arrastrándolas</string>
     <string name="reorder_by_dragging_pro">Reordenar carpetas arrastrándolas (Pro)</string>
     <string name="restore_to_path">Restaurando a \'%s\'</string>
+    <string name="restore_this_file">Restaurar esta foto</string>
+    <string name="restore_selected_files">Restaurar fotos seleccionadas</string>
+    <string name="restore_all_files">Restaurar todas las fotos</string>
+    <string name="move_media_to_recycle_bin_confirmation">¿Mover %s a la papelera?</string>
+    <string name="delete_media_confirmation">¿Eliminar %s?</string>
+    <plurals name="delete_media_items">
+        <item quantity="one">%d foto</item>
+        <item quantity="many">%d fotos</item>
+        <item quantity="other">%d fotos</item>
+    </plurals>
     <string name="filter_media">Filtro de medios</string>
     <string name="images">Imágenes</string>
     <string name="videos">Vídeos</string>
@@ -170,6 +180,9 @@
     <string name="deep_zoomable_images">Imágenes ampliables con zoom</string>
     <string name="show_highest_quality">Mostrar imágenes con la mayor calidad posible</string>
     <string name="show_recycle_bin_last">Mostrar la papelera de reciclaje como último elemento en la pantalla principal</string>
+    <string name="recycle_bin_delete_today">Hoy</string>
+    <string name="recycle_bin_delete_tomorrow">Mañana</string>
+    <string name="recycle_bin_delete_days">%1$d días</string>
     <string name="allow_down_gesture">Permitir cerrar la vista de pantalla completa con un gesto hacia abajo</string>
     <string name="allow_one_to_one_zoom">Permitir zoom 1:1 con un toque doble</string>
     <string name="open_videos_on_separate_screen">Reproducir videos en una pantalla separada con gestos horizontales</string>
@@ -259,9 +272,9 @@
     <string name="file_is_malformed_or_corrupted">El archivo está malformado o dañado.</string>
     <string name="unsupported_format">Formato no soportado.</string>
     <plurals name="restore_confirmation">
-        <item quantity="one">¿Confirma que quiere restaurar %d archivo?</item>
-        <item quantity="many">¿Confirma que quiere restaurar %d de archivos?</item>
-        <item quantity="other">¿Confirma que quiere restaurar %d archivos?</item>
+        <item quantity="one">¿Confirma que quiere restaurar %d foto?</item>
+        <item quantity="many">¿Confirma que quiere restaurar %d fotos?</item>
+        <item quantity="other">¿Confirma que quiere restaurar %d fotos?</item>
     </plurals>
     <string name="keep_screen_on_fullscreen_photos">Mantener pantalla encendida al ver fotos en pantalla completa</string>
     <string name="force_landscape_reverse">Fuerza apaisado (inverso)</string>
